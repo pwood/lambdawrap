@@ -33,6 +33,9 @@ go get github.com/pwood/lambdawrap
 
 This library is under active development, it should not be used in production. 
 
+> Please note that tests for the different wraps will often include generic typing information, this is usually not
+> required in production use, as Go can infer the typing information when used in place.
+
 ## Maintainers
 
 [@pwood](https://github.com/pwood)
