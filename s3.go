@@ -14,7 +14,7 @@ func S3Notification(n func(context.Context, events.S3EventRecord) ([]byte, error
 
 		for _, r := range e.Records {
 			if d, err := n(ctx, r); err != nil {
-				return nil, fmt.Errorf("DynamoDBStream next: %w", err)
+				return nil, fmt.Errorf("S3Notification next: %w", err)
 			} else {
 				ret = append(ret, d...)
 			}
