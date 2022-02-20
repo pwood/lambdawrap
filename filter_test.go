@@ -108,3 +108,44 @@ func TestFilter(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func TestSwitch(t *testing.T) {
+	t.Run("returns an error if no match is found", func(t *testing.T) {
+		_, err := Switch[string, string](func(s string) string {
+			return s
+		}, map[string]func(context.Context, string) ([]byte, error){
+			"a": func(ctx context.Context, s string) ([]byte, error) {
+				return nil, nil
+			},
+		})(context.TODO(), "b")
+
+		assert.Error(t, err)
+	})
+
+	t.Run("returns data from function in map", func(t *testing.T) {
+		d, err := Switch[string, string](func(s string) string {
+			return s
+		}, map[string]func(context.Context, string) ([]byte, error){
+			"a": func(ctx context.Context, s string) ([]byte, error) {
+				return []byte("data"), nil
+			},
+		})(context.Background(), "a")
+
+		assert.Equal(t, []byte("data"), d)
+		assert.NoError(t, err)
+	})
+
+	t.Run("returns error from function in map", func(t *testing.T) {
+		d, err := Switch[string, string](func(s string) string {
+			return s
+		}, map[string]func(context.Context, string) ([]byte, error){
+			"a": func(ctx context.Context, s string) ([]byte, error) {
+				return nil, io.ErrUnexpectedEOF
+			},
+		})(context.Background(), "a")
+
+		assert.Nil(t, d)
+		assert.Error(t, err)
+		assert.Equal(t, io.ErrUnexpectedEOF, err)
+	})
+}

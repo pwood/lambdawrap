@@ -2,6 +2,7 @@ package lambdawrap
 
 import (
 	"context"
+	"fmt"
 )
 
 // Filter is a generic component that can be added to most wrapper chains, it calls the user provided function for each
@@ -36,6 +37,19 @@ func Match[O any](f func(context.Context, O) (bool, error), m func(context.Conte
 			} else {
 				return n(ctx, o)
 			}
+		}
+	}
+}
+
+// Switch allows switching logic to occur based upon a function provided, switching out different downstream behaviour.
+// An example use case might be to change handler based upon an S3 event name.
+func Switch[O any, I comparable](f func(O) I, m map[I]func(context.Context, O) ([]byte, error)) func(context.Context, O) ([]byte, error) {
+	return func(ctx context.Context, o O) ([]byte, error) {
+		s := f(o)
+		if fn, ok := m[s]; ok {
+			return fn(ctx, o)
+		} else {
+			return nil, fmt.Errorf("no select match: %v", s)
 		}
 	}
 }
