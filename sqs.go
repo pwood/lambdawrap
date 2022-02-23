@@ -10,8 +10,8 @@ import (
 // to concatenate the []byte output from each message, returning to the caller.
 //
 // SQS will attempt to unmarshal any destination structure with JSON, this is implemented for chaining wraps
-// (e.g. SNS(SQS(S3()))). It is recommended you use DomainObject instead, a Codec can be provided to support encodings
-// other than JSON.
+// (e.g. SNS(SQS(S3Notification()))). It is recommended you use DomainObject instead, a Codec can be provided to support
+// encodings other than JSON.
 //
 // Do not use this directly for domain objects, use DomainObject.
 func SQS[O any](n func(context.Context, O) ([]byte, error)) func(context.Context, events.SQSEvent) ([]byte, error) {
