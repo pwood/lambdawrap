@@ -58,7 +58,7 @@ func TestSQS(t *testing.T) {
 		assert.Equal(t, "123", string(d))
 	})
 
-	t.Run("each event.SQSMessage is processed, calls the next function that takes a structure and the result is aggregated", func(t *testing.T) {
+	t.Run("each event.SQSMessage is processed, calls the next function that takes a structure, the result is aggregated and topic ARN is available on context", func(t *testing.T) {
 		type myStruct struct {
 			Val string
 		}
@@ -66,18 +66,25 @@ func TestSQS(t *testing.T) {
 		in := events.SQSEvent{
 			Records: []events.SQSMessage{
 				{
-					Body: "{\"val\": \"1\"}",
+					EventSourceARN: "sqsARN",
+					Body:           "{\"val\": \"1\"}",
 				},
 				{
-					Body: "{\"val\": \"2\"}",
+					EventSourceARN: "sqsARN",
+					Body:           "{\"val\": \"2\"}",
 				},
 				{
-					Body: "{\"val\": \"3\"}",
+					EventSourceARN: "sqsARN",
+					Body:           "{\"val\": \"3\"}",
 				},
 			},
 		}
 
-		next := func(_ context.Context, d myStruct) ([]byte, error) {
+		next := func(ctx context.Context, d myStruct) ([]byte, error) {
+			topic, ok := SQSTopicARNFromContext(ctx)
+			assert.True(t, ok)
+			assert.Equal(t, "sqsARN", topic)
+
 			return []byte(d.Val), nil
 		}
 

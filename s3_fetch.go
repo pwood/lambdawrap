@@ -62,6 +62,8 @@ func S3ReadAll(n func(context.Context, []byte) ([]byte, error)) func(context.Con
 	}
 }
 
+// S3EntityFromContext retrieves an events.S3Entity from the context, for use after an S3Fetch wrap has been used if
+// the application needs the events.S3Entity that was downloaded.
 func S3EntityFromContext(ctx context.Context) (events.S3Entity, bool) {
 	if val := ctx.Value(contextKeyS3Entity); val != nil {
 		return val.(events.S3Entity), true

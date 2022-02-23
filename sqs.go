@@ -19,6 +19,7 @@ func SQS[O any](n func(context.Context, O) ([]byte, error)) func(context.Context
 		var ret []byte
 
 		for _, r := range e.Records {
+			ctx = context.WithValue(ctx, contextKeySQSARN, r.EventSourceARN)
 			if p, err := sliceStringOrUnmarshal[O]([]byte(r.Body)); err != nil {
 				return nil, fmt.Errorf("SQS unmarshal: %w", err)
 			} else {
@@ -31,5 +32,15 @@ func SQS[O any](n func(context.Context, O) ([]byte, error)) func(context.Context
 		}
 
 		return ret, nil
+	}
+}
+
+// SQSTopicARNFromContext retrieves a SQS queue ARN from the context, for use after an SQS wrap has been used if the
+// application needs the topic that the message was provided on.
+func SQSTopicARNFromContext(ctx context.Context) (string, bool) {
+	if val := ctx.Value(contextKeySQSARN); val != nil {
+		return val.(string), true
+	} else {
+		return "", false
 	}
 }

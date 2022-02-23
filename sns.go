@@ -20,6 +20,7 @@ func SNS[O any](n func(context.Context, O) ([]byte, error)) func(context.Context
 		var ret []byte
 
 		for _, r := range e.Records {
+			ctx = context.WithValue(ctx, contextKeySNSARN, r.SNS.TopicArn)
 			if p, err := sliceStringOrUnmarshal[O]([]byte(r.SNS.Message)); err != nil {
 				return nil, fmt.Errorf("SNS unmarshal: %w", err)
 			} else {
@@ -53,4 +54,14 @@ func sliceStringOrUnmarshal[O any](data []byte) (O, error) {
 	}
 
 	return *v, nil
+}
+
+// SNSTopicARNFromContext retrieves a SNS topic ARN from the context, for use after an SNS wrap has been used if the
+// application needs the topic that the message was provided on.
+func SNSTopicARNFromContext(ctx context.Context) (string, bool) {
+	if val := ctx.Value(contextKeySNSARN); val != nil {
+		return val.(string), true
+	} else {
+		return "", false
+	}
 }

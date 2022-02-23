@@ -70,7 +70,7 @@ func TestSNS(t *testing.T) {
 		assert.Equal(t, "123", string(d))
 	})
 
-	t.Run("each event.SNSEventRecord is processed, calls the next function that takes a structure and the result is aggregated", func(t *testing.T) {
+	t.Run("each event.SNSEventRecord is processed, calls the next function that takes a structure, the result is aggregated and topic ARN is available on context", func(t *testing.T) {
 		type myStruct struct {
 			Val string
 		}
@@ -79,23 +79,30 @@ func TestSNS(t *testing.T) {
 			Records: []events.SNSEventRecord{
 				{
 					SNS: events.SNSEntity{
-						Message: "{\"val\": \"1\"}",
+						TopicArn: "topicARN",
+						Message:  "{\"val\": \"1\"}",
 					},
 				},
 				{
 					SNS: events.SNSEntity{
-						Message: "{\"val\": \"2\"}",
+						TopicArn: "topicARN",
+						Message:  "{\"val\": \"2\"}",
 					},
 				},
 				{
 					SNS: events.SNSEntity{
-						Message: "{\"val\": \"3\"}",
+						TopicArn: "topicARN",
+						Message:  "{\"val\": \"3\"}",
 					},
 				},
 			},
 		}
 
-		next := func(_ context.Context, d myStruct) ([]byte, error) {
+		next := func(ctx context.Context, d myStruct) ([]byte, error) {
+			topic, ok := SNSTopicARNFromContext(ctx)
+			assert.True(t, ok)
+			assert.Equal(t, "topicARN", topic)
+
 			return []byte(d.Val), nil
 		}
 
